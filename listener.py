@@ -22,7 +22,7 @@ def copy_files(source, dest):
         else:
             shutil.copy2(s, d)
 
-@app.route("/github", methods=["POST"])
+@app.route("/webhook/post", methods=["POST"])
 def github_webhook():
 
     if request.headers["Content-Type"] == "application/json":
@@ -45,7 +45,7 @@ def github_webhook():
 
         return "Success"
 
-@app.route("/", methods=["GET"])
+@app.route("/webhook", methods=["GET"])
 def home():
     return "<h1>App running</h1>"
 
