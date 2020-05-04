@@ -67,7 +67,7 @@ def github_webhook():
         git_repo_documentation = os.path.join(git_repo, "documentation")
 
         transport = paramiko.Transport(("oeg4.dia.fi.upm.es", 22))
-        transport.connect(username="schavez", password="Sr.chbzz.947")
+        transport.connect(username="schavez", password="password")
         sftp = MySFTPClient.from_transport(transport)
         dst_dir = "/opt/web/bimerr.iot.linkeddata.es/def/" + folder_name
         sftp.mkdir(dst_dir, ignore_existing=True)
