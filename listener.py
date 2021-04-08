@@ -5,13 +5,22 @@ import git
 import shutil
 import paramiko
 from distutils.dir_util import copy_tree
+import socket
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
 names_mapping = {"bimerr-occupant-behavior": "occupancy-profile",
                  "bimerr-kpi": "key-performance-indicator",
-                 "bimerr-senML": "sensor-data"}
+                 "bimerr-senML": "sensor-data",
+                 "bimerr-building": "building",
+                 "bimerr-material-properties": "material-properties",
+                 "bimerr-renovation-measures": "renovation-measures",
+                 "bimerr-metadata": "metadata",
+                 "bimerr-annotation-objects": "annotation-objects",
+                 "bimerr-information-objects": "information-objects",
+                 "bimerr-renovation-process": "renovation-process",
+                 "bimerr-weather": "weather"}
 
 
 class MySFTPClient(paramiko.SFTPClient):
@@ -55,7 +64,8 @@ def github_webhook():
     if request.headers["Content-Type"] == "application/json":
         content = request.json
         repo_name = content["repository"]["name"]
-        folder_name = names_mapping[repo_name]
+        if repo_name != "bimerr-website":
+            folder_name = names_mapping[repo_name]
 
         repos_path = os.path.join(os.path.dirname(os.getcwd()), "repos")
 
@@ -64,22 +74,26 @@ def github_webhook():
         g.pull()
 
         # In this repo is the information I want to send to the server
-        git_repo_documentation = os.path.join(git_repo, "documentation")
-
-        transport = paramiko.Transport(("oeg4.dia.fi.upm.es", 22))
-        transport.connect(username="schavez", password="Sr.chbzz.947")
-        sftp = MySFTPClient.from_transport(transport)
-        dst_dir = "/opt/web/bimerr.iot.linkeddata.es/def/" + folder_name
+        if repo_name != "bimerr-website":
+            git_repo_documentation = os.path.join(git_repo, "documentation")
+        else:
+            git_repo_documentation = git_repo
+        transport = paramiko.Transport(("192.168.122.109", 80))
+        transport.connect(username="bimerr", password="password")
+        sftp = MySFTPClient.from_transport(transport, banner_timeout=200)
+        if repo_name != "bimerr-website":
+            dst_dir = "/var/www/html/def/" + folder_name
+        else:
+            dst_dir = "/var/www/html"
         sftp.mkdir(dst_dir, ignore_existing=True)
         sftp.put_dir(git_repo_documentation, dst_dir)
         sftp.close()
 
         return "Success"
 
-@app.route("/webhook", methods=["GET"])
+@app.route("/", methods=["GET"])
 def home():
     return "<h1>App running</h1>"
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001)
