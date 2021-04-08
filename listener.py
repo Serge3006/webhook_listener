@@ -23,7 +23,7 @@ names_mapping = {"bimerr-occupant-behavior": "occupancy-profile",
                  "bimerr-weather": "weather"}
 
 
-class MySFTPClient(paramiko.SFTPClient):
+"""class MySFTPClient(paramiko.SFTPClient):
     def put_dir(self, source, target):
         ''' Uploads the contents of the source directory to the target path. The
             target directory needs to exists. All subdirectories in source are
@@ -55,7 +55,7 @@ def copy_files(source, dest):
         if os.path.isdir(s):
             shutil.copytree(s, d)
         else:
-            shutil.copy2(s, d)
+            shutil.copy2(s, d)"""
 
 
 @app.route("/webhook/post", methods=["POST"])
@@ -78,16 +78,17 @@ def github_webhook():
             git_repo_documentation = os.path.join(git_repo, "documentation")
         else:
             git_repo_documentation = git_repo
-        transport = paramiko.Transport(("192.168.122.109", 80))
-        transport.connect(username="bimerr", password="password")
-        sftp = MySFTPClient.from_transport(transport, banner_timeout=200)
+        #transport = paramiko.Transport(("192.168.122.109", 80))
+        #transport.connect(username="bimerr", password="password")
+        #sftp = MySFTPClient.from_transport(transport, banner_timeout=200)
         if repo_name != "bimerr-website":
             dst_dir = "/var/www/html/def/" + folder_name
         else:
             dst_dir = "/var/www/html"
-        sftp.mkdir(dst_dir, ignore_existing=True)
-        sftp.put_dir(git_repo_documentation, dst_dir)
-        sftp.close()
+        os.makedirs(dst_dir, exist_ok=True)
+        os.system("cp -r {} {}".format(git_repo_documentation, dst_dir))
+        #sftp.put_dir(git_repo_documentation, dst_dir)
+        #sftp.close()
 
         return "Success"
 
